@@ -32,7 +32,7 @@ export default function TravelPlanForm() {
         });
         setTravelDetails(""); // Clear the form
       }
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: "Error",
         description: "Failed to submit travel plan. Please try again.",
