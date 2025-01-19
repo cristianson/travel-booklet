@@ -11,8 +11,9 @@ import { submitTravelPlan } from "@/api/submitTravelPlan";
 export default function TravelPlanForm() {
   const [mounted, setMounted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
   const [travelDetails, setTravelDetails] = useState("");
+  const [error, setError] = useState<string | null>(null); // Error state
+  const { toast } = useToast();
 
   useEffect(() => {
     setMounted(true);
@@ -20,6 +21,7 @@ export default function TravelPlanForm() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setError(null); // Clear previous error
     setIsSubmitting(true);
 
     try {
@@ -31,8 +33,11 @@ export default function TravelPlanForm() {
           duration: 3000,
         });
         setTravelDetails(""); // Clear the form
+      } else {
+        setError("Submission failed. Please check your input and try again.");
       }
-    } catch (error) {
+    } catch {
+      setError("Failed to submit your travel plan. Please try again.");
       toast({
         title: "Error",
         description: "Failed to submit travel plan. Please try again.",
@@ -44,52 +49,18 @@ export default function TravelPlanForm() {
     }
   };
 
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0, y: 50 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 15,
-        when: "beforeChildren",
-        staggerChildren: 0.2,
-      },
-    },
-  };
-
-  const childVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: "spring",
-        stiffness: 200,
-        damping: 20,
-      },
-    },
-  };
-
-  // Return null on server-side
   if (!mounted) {
-    return null;
+    return null; // Prevent server-side rendering
   }
 
   return (
     <div className="w-full min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
       <motion.div
         className="w-full max-w-2xl bg-white rounded-xl shadow-lg p-8"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
       >
-        <motion.div
-          className="flex justify-center mb-6"
-          variants={childVariants}
-        >
+        <motion.div className="flex justify-center mb-6">
           <Image
             src="/travel-logo.png"
             alt="Travel Logo"
@@ -101,7 +72,7 @@ export default function TravelPlanForm() {
         </motion.div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          <motion.div variants={childVariants}>
+          <div>
             <label
               htmlFor="travelDetails"
               className="block text-lg font-semibold text-gray-900 mb-3"
@@ -115,39 +86,41 @@ export default function TravelPlanForm() {
               value={travelDetails}
               onChange={(e) => setTravelDetails(e.target.value)}
             />
-          </motion.div>
+          </div>
 
-          <motion.div variants={childVariants}>
-            <Button
-              type="submit"
-              className="w-full py-6 text-lg font-medium"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                      fill="none"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
-                  Submitting...
-                </span>
-              ) : (
-                "Submit Travel Plan"
-              )}
-            </Button>
-          </motion.div>
+          {error && (
+            <div className="mt-4 text-red-600 text-sm font-medium">{error}</div>
+          )}
+
+          <Button
+            type="submit"
+            className="w-full py-6 text-lg font-medium"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                Submitting...
+              </span>
+            ) : (
+              "Submit Travel Plan"
+            )}
+          </Button>
         </form>
       </motion.div>
     </div>
